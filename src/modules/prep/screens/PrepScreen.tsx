@@ -236,8 +236,13 @@ export default function PrepScreen({
         setDefaultRequiredIngredients();
         return;
       }
+
+      setIsLoading(false);
+      navigation.navigate('FrameworkNotFound');
+      return;
     } catch (error) {
       console.error('Error fetching from recipe API:', error);
+      setIsLoading(false);
       navigation.navigate('FrameworkNotFound');
     }
   };

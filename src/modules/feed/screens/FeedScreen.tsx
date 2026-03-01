@@ -6,10 +6,11 @@ import {
   NativeSyntheticEvent, 
   ScrollView, 
   View,
-  Pressable 
+  Pressable,
+  Text 
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import tw from "../../../common/tailwind";
 import { useLinkTo, useNavigation } from "@react-navigation/native";
 import useAnalytics from "../../analytics/hooks/useAnalytics";
@@ -80,6 +81,17 @@ export default function FeedScreen() {
     navigation.navigate('Inventory');
   }, [navigation, newCurrentRoute, sendAnalyticsEvent]);
 
+  const onCookbookTapped = useCallback(() => {
+    sendAnalyticsEvent({
+      event: mixpanelEventName.actionClicked,
+      properties: {
+        location: newCurrentRoute,
+        action: 'cookbook_icon_pressed',
+      },
+    });
+    navigation.navigate('Cookbook');
+  }, [navigation, newCurrentRoute, sendAnalyticsEvent]);
+
   const onShoppingListTapped = useCallback(() => {
     sendAnalyticsEvent({
       event: mixpanelEventName.actionClicked,
@@ -120,15 +132,26 @@ export default function FeedScreen() {
           
           {/* Icons Row */}
           <View style={tw`flex-row items-center justify-between px-5 mb-3`}>
-            {/* Left - Inventory */}
-            <Pressable
-              onPress={onInventoryTapped}
-              style={tw`h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg`}
-              accessibilityRole="button"
-              accessibilityLabel="Open digital inventory"
-            >
-              <Ionicons name="cube-outline" size={20} color={tw.color('eggplant')} />
-            </Pressable>
+            {/* Left - Inventory & CookBook */}
+            <View style={tw`flex-row items-center`}>
+              <Pressable
+                onPress={onInventoryTapped}
+                style={tw`h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg mr-3`}
+                accessibilityRole="button"
+                accessibilityLabel="Open digital inventory"
+              >
+                <Ionicons name="cube-outline" size={20} color={tw.color('eggplant')} />
+              </Pressable>
+
+              <Pressable
+                onPress={onCookbookTapped}
+                style={tw`h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg`}
+                accessibilityRole="button"
+                accessibilityLabel="Open AI CookBook"
+              >
+                <Feather name="book-open" size={18} color={tw.color('kale')} />
+              </Pressable>
+            </View>
 
             {/* Right - Shopping List & Leaderboard */}
             <View style={tw`flex-row items-center`}>
@@ -167,6 +190,7 @@ export default function FeedScreen() {
 
         <View style={tw`pt-15 bg-creme`}>
           
+
           <IngredientsCarousel />
 
           <CommunityGroups />

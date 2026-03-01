@@ -10,6 +10,7 @@ import DietaryRecipesScreen from '../screens/DietaryRecipesScreen';
 import IngredientsStackNavigator, { IngredientsStackParamList } from '../../ingredients/navigation/IngredientsNavigator';
 import GroupsStackNavigator, { GroupsStackParamList } from '../../groups/navigation/GroupsNavigator';
 import InventoryStackNavigator, { InventoryStackParamList } from '../../inventory/navigation/InventoryNavigator';
+import CookbookStackNavigator, { CookbookStackParamList } from '../../cookbook/navigation/CookbookNavigation';
 import LeaderboardScreen from '../../badges/screens/LeaderboardScreen';
 import ShoppingListScreen from '../../shoppingList/screens/ShoppingListScreen';
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
@@ -25,6 +26,7 @@ export type FeedStackParamList = {
   Ingredients: NavigatorScreenParams<IngredientsStackParamList>;
   Groups: NavigatorScreenParams<GroupsStackParamList>;
   Inventory: NavigatorScreenParams<InventoryStackParamList> | undefined;
+  Cookbook: NavigatorScreenParams<CookbookStackParamList> | undefined;
 };
 
 export type FeedStackScreenProps<Screen extends keyof FeedStackParamList> =
@@ -88,6 +90,12 @@ export default function FeedStackNavigator() {
         name="DietaryRecipes"
         component={DietaryRecipesScreen}
         options={{ headerShown: false }}
+      />
+
+      <NavigationStack.Screen
+        name="Cookbook"
+        component={CookbookStackNavigator}
+        options={{ title: 'My CookBook', headerShown: false }}
       />
     </NavigationStack.Navigator>
   );

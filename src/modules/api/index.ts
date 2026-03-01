@@ -6,7 +6,7 @@ const baseQuery = baseQueryWithReauth;
 export const api = createApi({
   reducerPath: 'api',
   baseQuery,
-  tagTypes: ['CurrentUser', 'CurrentUserOnboarding', 'CurrentUserTOTP'],
+  tagTypes: ['CurrentUser', 'CurrentUserOnboarding', 'CurrentUserTOTP', 'CookbookRecipes'],
   endpoints: _builder => ({}),
 });
 

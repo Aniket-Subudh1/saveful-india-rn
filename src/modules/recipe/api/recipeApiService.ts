@@ -9,6 +9,15 @@ interface CacheEntry<T> {
 }
 
 class RecipeApiService {
+  private normalizeSlug(value: string): string {
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/[’']/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
   private getBaseUrl(): string {
     return EnvironmentManager.shared.apiUrl();
   }
@@ -50,8 +59,20 @@ class RecipeApiService {
       const recipe = response.data;
       this.cacheById.set(id, { data: recipe, expiry: Date.now() + RecipeApiService.CACHE_TTL });
       // Also populate the slug cache
-      const slug = recipe.title?.toLowerCase().replace(/\s+/g, '-');
-      if (slug) this.cacheBySlug.set(slug, { data: recipe, expiry: Date.now() + RecipeApiService.CACHE_TTL });
+      const legacySlug = recipe.title?.toLowerCase().replace(/\s+/g, '-');
+      const canonicalSlug = recipe.title ? this.normalizeSlug(recipe.title) : '';
+      if (legacySlug) {
+        this.cacheBySlug.set(legacySlug, {
+          data: recipe,
+          expiry: Date.now() + RecipeApiService.CACHE_TTL,
+        });
+      }
+      if (canonicalSlug) {
+        this.cacheBySlug.set(canonicalSlug, {
+          data: recipe,
+          expiry: Date.now() + RecipeApiService.CACHE_TTL,
+        });
+      }
       return recipe;
     } catch (error) {
       console.error(`Error fetching recipe ${id}:`, error);
@@ -62,20 +83,48 @@ class RecipeApiService {
 
   async getRecipeBySlug(slug: string, _country?: string): Promise<PopulatedRecipe | null> {
     try {
+      const normalizedInputSlug = this.normalizeSlug(slug);
+
       // Check in-memory cache first
       const cached = this.cacheBySlug.get(slug);
       if (this.isCacheValid(cached)) return cached.data;
+      const normalizedCached = this.cacheBySlug.get(normalizedInputSlug);
+      if (this.isCacheValid(normalizedCached)) return normalizedCached.data;
 
       // Hit the dedicated slug endpoint (single DB query)
       const baseUrl = this.getBaseUrl();
       const response = await axios.get(`${baseUrl}/api/api/recipe/by-slug/${encodeURIComponent(slug)}`);
       const recipe = response.data;
       this.cacheBySlug.set(slug, { data: recipe, expiry: Date.now() + RecipeApiService.CACHE_TTL });
+      this.cacheBySlug.set(normalizedInputSlug, { data: recipe, expiry: Date.now() + RecipeApiService.CACHE_TTL });
       this.cacheById.set(recipe._id || recipe.id, { data: recipe, expiry: Date.now() + RecipeApiService.CACHE_TTL });
       return recipe;
     } catch (error: any) {
       // 404 means not found — don't throw
-      if (error?.response?.status === 404) return null;
+      if (error?.response?.status === 404) {
+        try {
+          const recipes = await this.getAllRecipes();
+          const normalizedInputSlug = this.normalizeSlug(slug);
+          const matched = recipes.find(recipe => {
+            const titleSlug = this.normalizeSlug(recipe.title || '');
+            const legacySlug = (recipe.title || '').toLowerCase().replace(/\s+/g, '-');
+            return titleSlug === normalizedInputSlug || legacySlug === slug;
+          });
+
+          if (!matched?._id) return null;
+
+          const recipe = await this.getRecipeById(matched._id);
+          this.cacheBySlug.set(slug, { data: recipe, expiry: Date.now() + RecipeApiService.CACHE_TTL });
+          this.cacheBySlug.set(normalizedInputSlug, {
+            data: recipe,
+            expiry: Date.now() + RecipeApiService.CACHE_TTL,
+          });
+          return recipe;
+        } catch (fallbackError) {
+          console.error(`Fallback slug resolution failed for ${slug}:`, fallbackError);
+          return null;
+        }
+      }
       console.error(`Error fetching recipe by slug ${slug}:`, error);
       throw error;
     }
