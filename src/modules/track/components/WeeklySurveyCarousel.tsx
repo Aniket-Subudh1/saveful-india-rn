@@ -224,21 +224,11 @@ export default function WeeklySurveyCarousel() {
     );
   }
 
-  // Use the weekly summary endpoint for real week-on-week comparison
-  const currentWeek = weeklySummary?.current_week ?? userSurveys[0].calculatedSavings;
-  const previousWeek = weeklySummary?.previous_week;
-  const personalBests = weeklySummary?.personal_bests;
-
-  // Calculate week-on-week differences
-  const foodDiff = previousWeek
-    ? currentWeek.food_saved - previousWeek.food_saved
-    : currentWeek.food_saved;
-  const costDiff = previousWeek
-    ? currentWeek.cost_savings - previousWeek.cost_savings
-    : currentWeek.cost_savings;
-  const co2Diff = previousWeek
-    ? currentWeek.co2_savings - previousWeek.co2_savings
-    : currentWeek.co2_savings;
+  // Use total accumulated savings (all-time) from the weekly summary
+  const totalFoodSavedKg = (weeklySummary?.total_food_saved ?? userSurveys[0].calculatedSavings.food_saved) / 1000;
+  const totalCostSaved = weeklySummary?.total_cost_saved ?? userSurveys[0].calculatedSavings.cost_savings;
+  const totalCo2SavedKg = (weeklySummary?.total_co2_saved ?? userSurveys[0].calculatedSavings.co2_savings) / 1000;
+  const totalSurveys = weeklySummary?.total_surveys ?? userSurveys.length;
 
   // Check personal bests from actual survey data
   const latestSurvey = userSurveys[0];
@@ -246,33 +236,35 @@ export default function WeeklySurveyCarousel() {
   const isCostBest = latestSurvey?.isCostPersonalBest ?? false;
   const isCo2Best = latestSurvey?.isCo2PersonalBest ?? false;
 
+  const surveyLabel = `across ${totalSurveys} survey${totalSurveys !== 1 ? 's' : ''}`;
+
   const data = [
     {
       id: 0,
       title: 'waste',
       isBest: isFoodBest,
       image: require('../../../../assets/placeholder/big-savings.png'),
-      status: foodDiff >= 0 ? 'less' : 'more',
-      value: `${(Math.abs(currentWeek.food_saved) / 1000).toFixed(2)}KG`,
-      output: `potential ${foodDiff >= 0 ? 'less' : 'more'} waste`,
+      status: 'less',
+      value: `${totalFoodSavedKg.toFixed(2)}KG`,
+      output: `total potential less waste`,
     },
     {
       id: 1,
       title: 'savings',
       isBest: isCostBest,
       image: require('../../../../assets/placeholder/money.png'),
-      status: costDiff >= 0 ? 'less' : 'more',
-      value: `${currencySymbol}${Math.abs(currentWeek.cost_savings).toFixed(2)}`,
-      output: `potential ${costDiff >= 0 ? 'savings' : 'cost'}`,
+      status: 'less',
+      value: `${currencySymbol}${totalCostSaved.toFixed(2)}`,
+      output: `total potential savings`,
     },
     {
       id: 2,
       title: 'co2',
       isBest: isCo2Best,
       image: require('../../../../assets/placeholder/cloud.png'),
-      status: co2Diff >= 0 ? 'less' : 'more',
-      value: `${(Math.abs(currentWeek.co2_savings) / 1000).toFixed(2)}KG`,
-      output: `potential CO2 ${co2Diff >= 0 ? 'saved' : 'spent'}`,
+      status: 'less',
+      value: `${totalCo2SavedKg.toFixed(2)}KG`,
+      output: `total potential CO2 saved`,
     },
   ];
 
@@ -329,7 +321,7 @@ export default function WeeklySurveyCarousel() {
             { letterSpacing: 1 },
           ]}
         >
-          your latest weekly survey results
+          your total savings
         </Text>
       </View>
 

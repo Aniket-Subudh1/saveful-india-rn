@@ -49,6 +49,7 @@ export default function AddRecipeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<CookbookStackParamList>>();
   const [link, setLink] = useState('');
   const [addRecipe, { isLoading }] = useAddRecipeFromLinkMutation();
+  const [submitted, setSubmitted] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
   const handlePaste = useCallback(async () => {
@@ -82,7 +83,11 @@ export default function AddRecipeScreen() {
         message: `Generate recipe for ${trimmedLink} link`,
       }).unwrap();
 
-      if (result.success && result.data) {
+      if (result.success && result.queued) {
+        setLink('');
+        navigation.replace('CookbookHome');
+      } else if (result.success && result.data) {
+        // Fallback: if server returns data directly (backward compat)
         setLink('');
         navigation.replace('CookbookRecipeDetail', { id: result.data._id, initialRecipe: result.data });
       } else {
@@ -92,11 +97,6 @@ export default function AddRecipeScreen() {
         );
       }
     } catch (error: any) {
-      const isTimeout =
-        error?.name === 'AbortError' ||
-        error?.name === 'TimeoutError' ||
-        error?.status === 'TIMEOUT_ERROR';
-
       const rawServerMsg = error?.data?.message ?? error?.error ?? error?.message;
       const serverMsg =
         typeof rawServerMsg === 'string'
@@ -105,28 +105,7 @@ export default function AddRecipeScreen() {
             ? rawServerMsg.filter(Boolean).join(', ')
             : '';
 
-      const normalizedMsg = serverMsg.toLowerCase();
-      const isInvalid =
-        normalizedMsg.includes('invalid response') ||
-        normalizedMsg.includes('could not parse') ||
-        normalizedMsg.includes('empty response');
-
-      let title = 'Error';
-      let message = 'Something went wrong. Please try again.';
-
-      if (isTimeout) {
-        title = 'Timed Out';
-        message =
-          'The request took too long. Please try again — it usually works on a second attempt.';
-      } else if (isInvalid) {
-        title = 'Could Not Read Recipe';
-        message =
-          'The AI couldn\'t parse a recipe from that link. Try a different link or try again.';
-      } else if (serverMsg) {
-        message = serverMsg;
-      }
-
-      Alert.alert(title, message);
+      Alert.alert('Error', serverMsg || 'Something went wrong. Please try again.');
     }
   }, [link, addRecipe, navigation]);
 
@@ -220,21 +199,53 @@ export default function AddRecipeScreen() {
               </Text>
             </Pressable>
 
+            {/* Submitted State — recipe queued */}
+            {submitted && (
+              <View style={tw`items-center mt-8`}>
+                <View style={tw`w-16 h-16 rounded-full bg-green-100 items-center justify-center mb-4`}>
+                  <Feather name="bell" size={28} color={tw.color('green-600') || '#16A34A'} />
+                </View>
+                <Text style={tw.style(bodyMediumBold, 'text-green-700 text-center')}>
+                  Recipe is being generated!
+                </Text>
+                <Text style={tw.style(bodyMediumRegular, 'text-stone mt-2 text-center leading-5 px-4')}>
+                  Our AI is working on your recipe in the background. We'll send you a notification when it's ready in your cookbook.
+                </Text>
+                <Pressable
+                  onPress={() => navigation.replace('CookbookHome')}
+                  style={tw`mt-6 bg-green-600 py-3.5 px-8 rounded-full flex-row items-center justify-center`}
+                >
+                  <Feather name="arrow-left" size={18} color="#fff" />
+                  <Text style={tw.style(bodyMediumBold, 'text-white ml-2')}>
+                    Back to Cookbook
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setSubmitted(false);
+                    setLink('');
+                  }}
+                  style={tw`mt-3`}
+                >
+                  <Text style={tw.style(bodyMediumBold, 'text-eggplant-vibrant')}>
+                    Add Another Recipe
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+
             {/* Loading State */}
-            {isLoading && (
+            {isLoading && !submitted && (
               <View style={tw`items-center mt-8`}>
                 <ActivityIndicator size="large" color={tw.color('green-600') || '#16A34A'} />
                 <Text style={tw.style(bodyMediumBold, 'text-green-700 mt-4 text-center')}>
-                  AI is extracting your recipe...
-                </Text>
-                <Text style={tw.style(bodyMediumRegular, 'text-stone mt-1 text-center')}>
-                  This may take 15-30 seconds
+                  Submitting your recipe link...
                 </Text>
               </View>
             )}
 
             {/* Generate Button */}
-            {!isLoading && (
+            {!isLoading && !submitted && (
               <Pressable
                 onPress={handleGenerate}
                 style={tw`mt-8 bg-green-600 py-4 rounded-full flex-row items-center justify-center`}
@@ -248,6 +259,7 @@ export default function AddRecipeScreen() {
             )}
 
             {/* Tips */}
+            {!submitted && (
             <View style={tw`mt-8 bg-white border border-gray-100 rounded-lg p-4 shadow-sm`}>
               <Text style={tw.style(bodyMediumBold, 'text-gray-900 mb-3')}>
                 Tips
@@ -273,6 +285,7 @@ export default function AddRecipeScreen() {
                 </Text>
               </View>
             </View>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
       </ImageBackground>

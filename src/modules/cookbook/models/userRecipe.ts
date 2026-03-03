@@ -81,6 +81,8 @@ export interface AddRecipeResponse {
   success: boolean;
   message: string;
   data?: UserRecipe;
+  queued?: boolean;
+  jobId?: string;
   limit?: number;
 }
 

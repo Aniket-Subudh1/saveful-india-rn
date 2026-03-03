@@ -24,27 +24,11 @@ const cookbookApi = api.injectEndpoints({
     }),
 
     addRecipeFromLink: builder.mutation<AddRecipeResponse, AddRecipeRequest>({
-      queryFn: async (body, _api, _extraOptions, baseQuery) => {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 420_000); // 7 minutes
-        try {
-          const result = await baseQuery({
-            url: '/api/cookbookai/add-recipe',
-            method: 'POST',
-            body,
-            signal: controller.signal,
-          });
-          clearTimeout(timer);
-          if (result.error) return { error: result.error };
-          return { data: result.data as AddRecipeResponse };
-        } catch (err: any) {
-          clearTimeout(timer);
-          if (err?.name === 'AbortError') {
-            return { error: { status: 'TIMEOUT_ERROR', error: 'Request timed out' } as any };
-          }
-          throw err;
-        }
-      },
+      query: (body) => ({
+        url: '/api/cookbookai/add-recipe',
+        method: 'POST',
+        body,
+      }),
       invalidatesTags: ['CookbookRecipes'],
     }),
 

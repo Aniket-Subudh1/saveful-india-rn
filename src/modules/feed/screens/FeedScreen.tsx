@@ -29,6 +29,7 @@ import MealsCarousel from "../components/MealsCarousel";
 import { IngredientsStackScreenProps } from "../../ingredients/navigation/IngredientsNavigator";
 import { FeedStackScreenProps } from "../navigation/FeedNavigation";
 import DietaryFilterBanner from "../components/DietaryFilterBanner";
+import NotificationPermissionBanner from "../components/NotificationPermissionBanner";
 
 
 const screenWidth = Dimensions.get('window').width;
@@ -174,6 +175,8 @@ export default function FeedScreen() {
               </Pressable>
             </View>
           </View>
+
+          <NotificationPermissionBanner />
 
           <FeedSearchBarHeader
             onPress={onSearchTapped}

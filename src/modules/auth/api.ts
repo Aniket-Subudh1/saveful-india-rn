@@ -282,16 +282,27 @@ const currentUserApi = api
 
       updateCurrentUser: builder.mutation<CurrentUser, CurrentUser>({
         query: params => ({
-          url: '/api/current_user',
+          url: '/api/auth/profile',
           method: 'PUT',
-          body: params,
+          body: {
+            name: params.first_name || params.name,
+          },
         }),
         invalidatesTags: ['CurrentUser'],
-        transformResponse: r => (r as DataResponse<CurrentUser>).data,
+        transformResponse: (r: any): CurrentUser => {
+          const normalizedId = r?._id ?? r?.id;
+          return {
+            ...r,
+            id: normalizedId as string,
+            email: r.email,
+            first_name: r.name || r.first_name || '',
+            name: r.name,
+          } as CurrentUser;
+        },
       }),
 
       updateCurrentUserPassword: builder.mutation<
-        CurrentUser,
+        { success: boolean; message: string },
         {
           currentPassword: string;
           newPassword: string;
@@ -299,18 +310,15 @@ const currentUserApi = api
         }
       >({
         query: ({ currentPassword, newPassword, confirmNewPassword }) => ({
-          url: '/api/current_user',
-          method: 'PUT',
+          url: '/api/auth/change-password',
+          method: 'POST',
           body: {
-            current_password: currentPassword,
-            update_password: {
-              password: newPassword,
-              password_confirmation: confirmNewPassword,
-            },
+            currentPassword,
+            newPassword,
+            confirmNewPassword,
           },
         }),
         invalidatesTags: ['CurrentUser'],
-        transformResponse: r => (r as DataResponse<CurrentUser>).data,
       }),
 
       updateCurrentUserEmail: builder.mutation<CurrentUser, { email: string }>({
@@ -336,11 +344,12 @@ const currentUserApi = api
         transformResponse: r => (r as DataResponse<CurrentUser>).data,
       }),
 
-      deleteCurrentUser: builder.mutation<void, void>({
+      deleteCurrentUser: builder.mutation<{ success: boolean; message: string }, void>({
         query: () => ({
-          url: '/api/current_user',
+          url: '/api/auth/account',
           method: 'DELETE',
         }),
+        invalidatesTags: ['CurrentUser'],
       }),
 
       updateDietaryProfile: builder.mutation<CurrentUser, DietaryProfileUpdate>({

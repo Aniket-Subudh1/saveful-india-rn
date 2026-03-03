@@ -142,7 +142,7 @@ export default function SettingsSavefulScreen() {
     useState<LocationMetadata | null>(null);
 
   const onUpdateUserOnboarding = handleSubmit(async data => {
-    if (isLoading || !userOnboarding) {
+    if (isLoading) {
       return;
     }
 
@@ -188,18 +188,12 @@ export default function SettingsSavefulScreen() {
       setValue('noOfChildren', userOnboarding.no_of_people?.children || 0);
       setValue('trackSurveyDay', userOnboarding.track_survey_day);
 
-      //MockValue
-      //setValue('postcode', userOnboarding.postcode);
-      // setValue('suburb', userOnboarding.suburb);
-      // setValue('noOfAdults', userOnboarding.noOfAdults);
-      // setValue('noOfChildren', userOnboarding.noOfChildren);
-      // setValue('trackSurveyDay', userOnboarding.trackSurveyDay);
+      
 
     }
   }, [setValue, userOnboarding]);
 
   if (!userOnboarding) {
-    return null;
   }
 
   return (
@@ -312,15 +306,15 @@ export default function SettingsSavefulScreen() {
         </SafeAreaView>
       </ScrollView>
 
-      {isSuccess && isSuccessUpdateUserOnboarding && (
+      {isSuccessUpdateUserOnboarding && (
         <Pressable
           style={tw.style(
             'mx-5 mb-4 flex-row items-center justify-start rounded-md border border-kale bg-mint p-3.5',
             cardDrop,
           )}
-          // onPress={() => {
-          //   setIsUpdateUserOnboardingSuccess(false);
-          // }}
+          onPress={() => {
+            setIsSuccessUpdateUserOnboarding(false);
+          }}
         >
           <Feather
             style={tw.style('mr-3')}

@@ -5,9 +5,7 @@ import {
   NativeStackScreenProps,
 } from "@react-navigation/native-stack";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { PermissionStatus } from 'expo-modules-core';
 import useAccessToken from "../../auth/hooks/useSessionToken";
-import useNotifications from "../../notifications/hooks/useNotifications";
 import { useGetCurrentUserQuery } from "../../auth/api";
 import useAuthListener from "../../auth/hooks/useAuthListener";
 import { useAppDispatch } from "../../../store/hooks";
@@ -95,8 +93,6 @@ function InitialNavigator() {
   // query is needed here.
   const hasCompletedOnboarding = !!currentUser?.country;
 
-  const { permissionStatus, registerForNotifications } = useNotifications();
-
   // Listen for auth state changes and handle automatic logout
   useAuthListener();
 
@@ -146,13 +142,8 @@ function InitialNavigator() {
     }
   }, []);
 
-  useEffect(() => {
-    if (hasCompletedOnboarding) {
-      if (permissionStatus === PermissionStatus.UNDETERMINED) {
-        registerForNotifications();
-      }
-    }
-  }, [hasCompletedOnboarding, permissionStatus, registerForNotifications]);
+  // Notification permission is now handled by the NotificationPermissionBanner
+  // on the Feed screen for a less intrusive UX.
 
   return (
     <InitialNavigationStack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
