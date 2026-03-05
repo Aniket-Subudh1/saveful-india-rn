@@ -20,6 +20,16 @@ class FoodFactApiService {
     return response.data;
   }
 
+  async getFoodFactById(id: string): Promise<FoodFactApiModel | null> {
+    try {
+      const baseUrl = this.getBaseUrl();
+      const response = await axios.get(`${baseUrl}/api/food-facts/${id}`);
+      return response.data;
+    } catch {
+      return null;
+    }
+  }
+
   async getFoodFactForIngredient(ingredientId: string): Promise<FoodFactApiModel | null> {
     const all = await this.getAllFoodFacts();
     const match = all.find(ff => {

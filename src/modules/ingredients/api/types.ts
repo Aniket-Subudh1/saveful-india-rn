@@ -66,6 +66,14 @@ export interface ParentIngredient {
   averageWeight: number;
 }
 
+export interface FoodFact {
+  _id: string;
+  title: string;
+  sponsor?: Sponsor | string;
+  relatedIngredient?: { _id: string; name: string } | string;
+  factOrInsight?: string;
+}
+
 export interface Ingredient {
   _id: string;
   name: string;
@@ -77,7 +85,7 @@ export interface Ingredient {
   theme?: IngredientTheme;
   parentIngredients: (ParentIngredient | string)[];
   description?: string;
-  sponsorId?: Sponsor | string;
+  foodFactId?: FoodFact | string;
   relatedHacks: (HackOrTip | string)[];
   inSeason: Month[];
   stickerId?: Sticker | string;

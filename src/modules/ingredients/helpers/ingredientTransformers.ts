@@ -16,7 +16,8 @@ export function isCurrentlyInSeason(inSeason: Month[] | null): boolean {
 
 export function transformIngredientToLegacyFormat(ingredient: Ingredient): IIngredient {
   const categoryId = ingredient.categoryId !== null && typeof ingredient.categoryId === 'object' ? ingredient.categoryId._id : ingredient.categoryId;
-  const sponsorId = ingredient.sponsorId !== null && typeof ingredient.sponsorId === 'object' ? ingredient.sponsorId._id : ingredient.sponsorId;
+  const foodFact = ingredient.foodFactId !== null && typeof ingredient.foodFactId === 'object' ? ingredient.foodFactId : null;
+  const foodFactId = foodFact ? foodFact._id : (typeof ingredient.foodFactId === 'string' ? ingredient.foodFactId : undefined);
   const stickerId = ingredient.stickerId !== null && typeof ingredient.stickerId === 'object' ? ingredient.stickerId._id : ingredient.stickerId;
   
   const heroImage: IAsset[] = ingredient.heroImageUrl ? [{
@@ -65,7 +66,7 @@ export function transformIngredientToLegacyFormat(ingredient: Ingredient): IIngr
     sticker: stickerId ? [{ id: stickerId, uid: stickerId, image: [] }] : [],
     parentIngredient,
     sponsorPanel: [],
-    sponsorId: sponsorId || undefined,
+    foodFactId: foodFactId || undefined,
     suitableDiets,
     relatedHacks,
     uid: ingredient._id,

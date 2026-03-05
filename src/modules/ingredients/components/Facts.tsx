@@ -1,7 +1,6 @@
 import formatMonths from '../../../common/helpers/formatMonths';
 import tw from '../../../common/tailwind';
 import { IIngredient } from '../../../models/craft';
-import IngredientSponsorBanner from './IngredientSponsorBanner';
 import FoodFactPanel from './FoodFactPanel';
 import React from 'react';
 import { Dimensions, Text, View } from 'react-native';
@@ -13,10 +12,10 @@ export default function Facts({
   inSeason,
   sponsorPanel,
   description,
-  sponsorId,
+  foodFactId,
   id,
   uid,
-}: IIngredient & { sponsorId?: string }) {
+}: IIngredient & { foodFactId?: string }) {
   const source = {
     html: nutrition || '',
   };
@@ -25,12 +24,7 @@ export default function Facts({
     <View style={tw`relative w-full px-5 pb-6`}>
       <View style={tw`gap-6.5 z-10`}>
         {/* Food Fact panel from backend (matches existing UI) */}
-        <FoodFactPanel ingredientId={uid || id} />
-
-        {/* Ingredient sponsor banner remains for cases without Food Fact */}
-        {!sponsorPanel && sponsorId ? (
-          <IngredientSponsorBanner sponsorId={sponsorId} />
-        ) : null}
+        <FoodFactPanel ingredientId={uid || id} foodFactId={foodFactId} />
 
         {description && (
           <View>

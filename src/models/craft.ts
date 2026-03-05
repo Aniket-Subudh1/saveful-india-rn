@@ -67,8 +67,8 @@ interface IIngredient {
   sponsorPanel: {
     id: string;
   }[];
-  // Backend integration: optional sponsor reference for Ingredient
-  sponsorId?: string;
+  // Backend integration: optional food fact reference for Ingredient
+  foodFactId?: string;
   suitableDiets: {
     id: string;
   }[];

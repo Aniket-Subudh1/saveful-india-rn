@@ -10,9 +10,10 @@ import { hackApiService, Sponsor as ApiSponsor } from '../../hack/api/hackApiSer
 
 interface FoodFactPanelProps {
   ingredientId: string;
+  foodFactId?: string;
 }
 
-export default function FoodFactPanel({ ingredientId }: FoodFactPanelProps) {
+export default function FoodFactPanel({ ingredientId, foodFactId }: FoodFactPanelProps) {
   const env = useEnvironment();
   const [foodFact, setFoodFact] = useState<FoodFactApiModel | null>(null);
   const [sponsor, setSponsor] = useState<ApiSponsor | null>(null);
@@ -20,7 +21,15 @@ export default function FoodFactPanel({ ingredientId }: FoodFactPanelProps) {
   useEffect(() => {
     const load = async () => {
       try {
-        const ff = await foodFactApiService.getFoodFactForIngredient(ingredientId);
+        let ff: FoodFactApiModel | null = null;
+        // If foodFactId is provided, fetch directly by ID
+        if (foodFactId) {
+          ff = await foodFactApiService.getFoodFactById(foodFactId);
+        }
+        // Fallback: search by relatedIngredient
+        if (!ff && ingredientId) {
+          ff = await foodFactApiService.getFoodFactForIngredient(ingredientId);
+        }
         setFoodFact(ff);
         const sponsorId = typeof ff?.sponsor === 'object' ? ff?.sponsor?._id : ff?.sponsor;
         if (sponsorId) {
@@ -35,8 +44,8 @@ export default function FoodFactPanel({ ingredientId }: FoodFactPanelProps) {
         setSponsor(null);
       }
     };
-    if (ingredientId) load();
-  }, [ingredientId]);
+    if (ingredientId || foodFactId) load();
+  }, [ingredientId, foodFactId]);
 
   if (!foodFact) return null;
 
